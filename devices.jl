@@ -16,9 +16,7 @@ function Motor(port::String)
     speed = open(port * "speed_sp", write = true, read = false)
     stop_action = open(port * "stop_action", write = true, read = false)
 
-    write_flush(command, "stop")
-    write_flush(speed, "0")
-    write_flush(duty_cyle, "0")
+    write_flush(command, "reset")
 
     return Motor(port, command, :none, duty_cyle, speed, stop_action, 0, :none)
 end
@@ -59,14 +57,10 @@ function LightSensor(port::Symbol)
 end
 
 
-mutable struct EV3
+mutable struct Brick
     mount_path::String
+    device::Symbol
 end
-
-function EV3()
-    return EV3("mount/sys/class/")
-end
-
 
 mutable struct Robot
     left::Motor

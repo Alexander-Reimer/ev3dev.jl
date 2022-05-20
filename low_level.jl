@@ -1,3 +1,6 @@
+function unknown_device()
+    @error "$(brick.device) is unsupported! Only :EV3Brick and :BrickPi are!"
+end
 # Ports
 function ports()
     global Ports = Dict{Symbol,String}()
@@ -11,51 +14,51 @@ function make_port(name, value)
     =#
 end
 
-function map_motors(paths = ["tacho-motor/"])
-    for path in paths
-        N = 0
-        #println(ev3.mount_path * path * "motor" * string(N))
-        while isdir(ev3.mount_path * path * "motor" * string(N))
-            the_path = ev3.mount_path * path * "motor" * string(N) * "/"
+function map_motors(path = "tacho-motor/")
+    N = 0
+    println(brick.mount_path * path * "motor" * string(N))
+    while isdir(brick.mount_path * path * "motor" * string(N))
+        the_path = brick.mount_path * path * "motor" * string(N) * "/"
 
-            #println(the_path)
+        #println(the_path)
 
-            address_io = open(the_path * "address")
-            contents = readline(address_io)
-            close(address_io)
+        address_io = open(the_path * "address")
+        contents = readline(address_io)
+        close(address_io)
 
-            name = split(contents, ":")[2] # "ev3-ports:outA" -> "outA"
-
-            #println(Symbol(name))
-
-            make_port(Symbol(name), the_path)
-            N += 1
-        end
+        name = split(contents, ":")[2] # "brick-ports:outA" -> "outA", "spi0.1:MA" -> "MA"
+        println(name)
+        make_port(Symbol(name), the_path)
+        N += 1
     end
 end
 
-function map_sensors(paths = ["lego-sensor/"])
-    for path in paths
-        for N = 1:100
-            the_path = ev3.mount_path * path * "sensor" * string(N) * "/"
-            if isdir(the_path)
-
-                #println(the_path)
-
-                address_io = open(the_path * "address")
-                contents = readline(address_io)
-                close(address_io)
-
-                name = split(contents, ":")
-                name = map(p -> Symbol(p), name)
-
-                if length(name) == 4
-                    make_port(name[4], the_path)
-                    #println(name[4])
-                elseif length(name) == 2
-                    make_port(name[2], the_path)
-                    #println(name[2])
+function map_sensors(path)
+    if brick.device == :EV3Brick
+        path_type = "sensor"
+    elseif brick.device == :BrickPi
+        path_type = "port"
+    else
+        unknown_device()
+    end
+    for N = 0:20
+        the_path = brick.mount_path * path * path_type * string(N) * "/"
+        println(the_path)
+        if isdir(the_path)
+    
+    
+            address_io = open(the_path * "address")
+            contents = readline(address_io)
+            close(address_io)
+    
+            name = split(contents, ":")[end]
+    
+            if brick.device == :BrickPi
+                if name[1] == 'S'
+                    make_port(Symbol(name), the_path)
                 end
+            else
+                make_port(Symbol(name), the_path)
             end
         end
     end
@@ -64,7 +67,11 @@ end
 function map_ports()
     ports() # Create an empty Dictionary named "Ports"
     map_motors() # Add keys for the motors to Ports (keys named outA, outB, etc.)
-    map_sensors() # Add keys for the sensors to Ports (keys named in1, in2, etc. for input ports, mux1, mux2, etc. for mux )
+    if brick.device == :EV3Brick
+        map_sensors("lego-sensor/") # Add keys for the sensors to Ports (keys named in1, in2, etc. for input ports, mux1, mux2, etc. for mux )
+    elseif brick.device == :BrickPi
+        map_sensors("lego-port/")
+    end
 end
 
 # IOs
