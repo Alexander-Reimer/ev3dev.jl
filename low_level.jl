@@ -14,11 +14,11 @@ end
 function map_motors(paths = ["tacho-motor/"])
     for path in paths
         N = 0
-        println(ev3.mount_path * path * "motor" * string(N))
+        #println(ev3.mount_path * path * "motor" * string(N))
         while isdir(ev3.mount_path * path * "motor" * string(N))
             the_path = ev3.mount_path * path * "motor" * string(N) * "/"
 
-            println(the_path)
+            #println(the_path)
 
             address_io = open(the_path * "address")
             contents = readline(address_io)
@@ -26,7 +26,7 @@ function map_motors(paths = ["tacho-motor/"])
 
             name = split(contents, ":")[2] # "ev3-ports:outA" -> "outA"
 
-            println(Symbol(name))
+            #println(Symbol(name))
 
             make_port(Symbol(name), the_path)
             N += 1
@@ -40,7 +40,7 @@ function map_sensors(paths = ["lego-sensor/"])
             the_path = ev3.mount_path * path * "sensor" * string(N) * "/"
             if isdir(the_path)
 
-                println(the_path)
+                #println(the_path)
 
                 address_io = open(the_path * "address")
                 contents = readline(address_io)
@@ -51,10 +51,10 @@ function map_sensors(paths = ["lego-sensor/"])
 
                 if length(name) == 4
                     make_port(name[4], the_path)
-                    println(name[4])
+                    #println(name[4])
                 elseif length(name) == 2
                     make_port(name[2], the_path)
-                    println(name[2])
+                    #println(name[2])
                 end
             end
         end
@@ -73,6 +73,11 @@ function deactivate(motor::Motor)
     close(motor.duty_cyle)
     close(motor.speed)
     close(motor.stop_action)
+end
+
+function deactivate(robot::Robot)
+    deactivate(robot.left)
+    deactivate(robot.right)
 end
 
 function deactivate(light_sensor::LightSensor)
@@ -123,14 +128,20 @@ function change_speed(motor::Motor, speed)
     end
 end
 
-function stop(motor::Motor, stop_action::Symbol)
+function stop(motor::Motor, stop_action::Symbol=:coast)
     # Stop actions:
     # :coast - Just stop spinning the motor and let it run out
     # :brake - Stop the motor actively
     # :hold - Stop the motors rotation and hold it still by applying force to counter any rotation
 
-    write_flush(motor.stop_action, string(stop_action))
-    command(motor, "stop")
+    if motor.current_stop_action != stop_action
+        motor.current_stop_action = stop_action
+        write_flush(motor.stop_action, string(stop_action))
+    end
+    if motor.drive_mode != :stop
+        motor.drive_mode = :stop
+        command(motor, "stop")
+    end
 end
 
 function command(light_sensor::LightSensor, command::String)

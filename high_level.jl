@@ -48,6 +48,11 @@ function drive(robot::Robot, speed = nothing, turning_rate = nothing; direct = t
     end
 end
 
+function stop(robot::Robot, stop_action::Symbol = :coast)
+    stop(robot.left, stop_action)
+    stop(robot.right, stop_action)
+end
+
 function mode(mode, sensors::LightSensor...)
     for sensor in sensors
         command(sensor, sensor.modes[mode])

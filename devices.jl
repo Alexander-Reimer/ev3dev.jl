@@ -7,19 +7,20 @@ mutable struct Motor
     speed::IOStream
     stop_action::IOStream
     current_speed::Int # For speed_sp AND duty_cycle_sp
+    current_stop_action::Symbol
 end
 
 function Motor(port::String)
     command = open(port * "command", write = true, read = false)
     duty_cyle = open(port * "duty_cycle_sp", write = true, read = false)
     speed = open(port * "speed_sp", write = true, read = false)
-    stop_action = open(port * "command", write = true, read = false)
+    stop_action = open(port * "stop_action", write = true, read = false)
 
     write_flush(command, "stop")
     write_flush(speed, "0")
     write_flush(duty_cyle, "0")
 
-    return Motor(port, command, :none, duty_cyle, speed, stop_action, 0)
+    return Motor(port, command, :none, duty_cyle, speed, stop_action, 0, :none)
 end
 
 function Motor(port::Symbol)
