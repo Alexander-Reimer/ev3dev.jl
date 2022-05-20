@@ -6,13 +6,13 @@ function setup(path::String; device = :EV3Brick)
     if path[end] != '/'
         path = path * "/"
     end
-    global brick = Brick(path, device)
+    global brick = make_brick(path, device)
     map_ports()
 end
 
 function setup()
     path = "R:"
-    setup(path, device = :BrickPi)
+    setup(path, device = :BrickPihaha)
 end
 
 setup()

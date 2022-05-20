@@ -56,12 +56,24 @@ function LightSensor(port::Symbol)
     return LightSensor(Ports[port])
 end
 
-
+function unknown_controller(device)
+    msg = "$device is unsupported! Only the following \"controllers\" are supported: \n $supported_controllers"
+    throw(AssertionError(msg))
+end
 mutable struct Brick
     mount_path::String
     device::Symbol
 end
 
+const supported_controllers = [:EV3Brick, :BrickPi]
+
+function make_brick(mount_path, device)
+    if device in supported_controllers
+        return Brick(mount_path, device)
+    else
+        unknown_controller(device)
+    end
+end
 mutable struct Robot
     left::Motor
     right::Motor

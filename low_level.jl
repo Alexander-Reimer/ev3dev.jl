@@ -1,6 +1,3 @@
-function unknown_device()
-    @error "$(brick.device) is unsupported! Only :EV3Brick and :BrickPi are!"
-end
 # Ports
 function ports()
     global Ports = Dict{Symbol,String}()
@@ -38,8 +35,6 @@ function map_sensors(path)
         path_type = "sensor"
     elseif brick.device == :BrickPi
         path_type = "port"
-    else
-        unknown_device()
     end
     for N = 0:20
         the_path = brick.mount_path * path * path_type * string(N) * "/"
