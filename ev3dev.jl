@@ -11,8 +11,8 @@ function setup(path::String; device = :EV3Brick)
 end
 
 function setup()
-    path = "R:"
-    setup(path, device = :BrickPihaha)
+    path = "R:/sys/class"
+    setup(path, device = :BrickPi)
 end
 
 setup()
